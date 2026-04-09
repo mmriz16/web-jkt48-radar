@@ -1,0 +1,10 @@
+
+> web-jkt48-radar@0.1.0 dev
+> next dev -p 3211
+
+▲ Next.js 16.2.2 (Turbopack)
+- Local:         http://localhost:3211
+- Network:       http://100.75.11.118:3211
+- Environments: .env
+✓ Ready in 1482ms
+[?25h

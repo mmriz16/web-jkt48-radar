@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
+import { usePathname } from "next/navigation";
 
 export type NavbarItem = {
   href: string;
@@ -13,6 +17,11 @@ type NavbarProps = {
   overlay?: boolean;
 };
 
+type NavbarLinkProps = NavbarItem & {
+  isActive: boolean;
+  onClick?: () => void;
+};
+
 const defaultItems: NavbarItem[] = [
   { href: "/", label: "Home" },
   { href: "/multi-viewer", label: "Multi-Viewer" },
@@ -23,16 +32,11 @@ const defaultItems: NavbarItem[] = [
   { href: "/about", label: "About" },
 ];
 
-function NavbarLink({
-  href,
-  label,
-  isActive,
-}: NavbarItem & {
-  isActive: boolean;
-}) {
+function NavbarLink({ href, label, isActive, onClick }: NavbarLinkProps) {
   return (
     <Link
       href={href}
+      onClick={onClick}
       aria-current={isActive ? "page" : undefined}
       className={`text-sm leading-none text-white transition-opacity ${
         isActive ? "opacity-100" : "opacity-50 hover:opacity-80"
@@ -43,6 +47,24 @@ function NavbarLink({
   );
 }
 
+function HamburgerIcon({ open }: { open: boolean }) {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="h-6 w-6 text-white"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    >
+      <path d={open ? "M5 5L19 19" : "M4 7H20"} />
+      <path d={open ? "M19 5L5 19" : "M4 12H20"} />
+      {!open ? <path d="M4 17H20" /> : null}
+    </svg>
+  );
+}
+
 export function Navbar({
   activeHref = "/",
   brandName = "JKT48 Radar",
@@ -50,6 +72,10 @@ export function Navbar({
   items = defaultItems,
   overlay = false,
 }: NavbarProps) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
+  const currentHref = pathname ?? activeHref;
+
   return (
     <header
       className={`w-full ${
@@ -58,29 +84,56 @@ export function Navbar({
           : "border-b border-white/6 bg-[#121416]"
       }`}
     >
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-6 px-6 py-3 sm:px-10 lg:flex-row lg:items-center lg:justify-between lg:px-24">
-        <div className="flex flex-col items-start">
-          <Link
-            href="/"
-            className="text-[1.25rem] leading-none font-bold tracking-[-0.02em] text-white"
+      <div className="mx-auto w-full max-w-[1440px] px-6 py-3 sm:px-10 lg:px-24">
+        <div className="flex items-start justify-between gap-6">
+          <div className="flex flex-col items-start">
+            <Link
+              href="/"
+              className="text-[1.25rem] leading-none font-bold tracking-[-0.02em] text-white"
+            >
+              {brandName}
+            </Link>
+            <p className="mt-1 text-[0.625rem] leading-none text-white/50">
+              {brandTagline}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
+            className="-mr-1 mt-1 inline-flex items-center justify-center p-0 text-white lg:hidden"
+            onClick={() => setMobileOpen((value) => !value)}
           >
-            {brandName}
-          </Link>
-          <p className="mt-1 text-[0.625rem] leading-none text-white/50">
-            {brandTagline}
-          </p>
+            <HamburgerIcon open={mobileOpen} />
+          </button>
         </div>
 
         <nav
           aria-label="Primary"
-          className="flex flex-wrap items-center gap-x-6 gap-y-3 lg:justify-end"
+          className="mt-6 hidden flex-wrap items-center gap-x-6 gap-y-3 lg:flex lg:justify-end"
         >
           {items.map((item) => (
             <NavbarLink
               key={item.href}
               href={item.href}
               label={item.label}
-              isActive={item.href === activeHref}
+              isActive={item.href === currentHref}
+            />
+          ))}
+        </nav>
+
+        <nav
+          aria-label="Primary mobile"
+          className={`${mobileOpen ? "mt-5 flex" : "hidden"} flex-col gap-4 lg:hidden`}
+        >
+          {items.map((item) => (
+            <NavbarLink
+              key={`mobile-${item.href}`}
+              href={item.href}
+              label={item.label}
+              isActive={item.href === currentHref}
+              onClick={() => setMobileOpen(false)}
             />
           ))}
         </nav>
