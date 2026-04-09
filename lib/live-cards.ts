@@ -282,11 +282,12 @@ export async function getLiveCards(): Promise<LiveCardsFeed> {
     ]);
 
     const liveRoot = asRecord(livePayload);
+    const liveData = asRecord(liveRoot?.data);
     const members = parseMembersPayload(membersPayload);
 
     const items = [
-      ...parseLiveGroup("showroom", liveRoot?.live_showroom, members),
-      ...parseLiveGroup("idn", liveRoot?.live_idn, members),
+      ...parseLiveGroup("showroom", liveData?.live_showroom, members),
+      ...parseLiveGroup("idn", liveData?.live_idn, members),
     ].filter((item) => item.isLive);
 
     return {
