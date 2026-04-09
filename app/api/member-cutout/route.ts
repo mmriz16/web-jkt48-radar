@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  return new NextResponse(cutout, {
+  return new NextResponse(new Uint8Array(cutout), {
     status: 200,
     headers: {
       "Content-Type": "image/png",
