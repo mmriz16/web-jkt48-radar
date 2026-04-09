@@ -1,7 +1,27 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    localPatterns: [
+      {
+        pathname: "/api/member-cutout",
+      },
+    ],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "static.showroom-live.com",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.idn.media",
+      },
+      {
+        protocol: "https",
+        hostname: "jkt48.com",
+      },
+    ],
+  },
 };
 
 export default nextConfig;
