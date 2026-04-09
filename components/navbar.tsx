@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
@@ -85,18 +86,39 @@ export function Navbar({
       }`}
     >
       <div className="mx-auto w-full max-w-[1440px] px-6 py-3 sm:px-10 lg:px-24">
-        <div className="flex items-start justify-between gap-6">
-          <div className="flex flex-col items-start">
-            <Link
-              href="/"
-              className="text-[1.25rem] leading-none font-bold tracking-[-0.02em] text-white"
-            >
-              {brandName}
-            </Link>
-            <p className="mt-1 text-[0.625rem] leading-none text-white/50">
-              {brandTagline}
-            </p>
-          </div>
+        <div className="flex items-start justify-between gap-6 lg:items-center">
+          <Link href="/" className="flex items-center gap-3">
+            <Image
+              src="/svg/Logo.svg"
+              alt="JKT48 Radar Logo"
+              width={40}
+              height={40}
+              className="h-8 w-8 sm:h-9 sm:w-9"
+              priority
+            />
+            <span className="flex flex-col items-start">
+              <span className="text-[1.25rem] leading-none font-bold tracking-[-0.02em] text-white">
+                {brandName}
+              </span>
+              <span className="mt-1 text-[0.625rem] leading-none text-white/50">
+                {brandTagline}
+              </span>
+            </span>
+          </Link>
+
+          <nav
+            aria-label="Primary"
+            className="hidden flex-wrap items-center justify-end gap-x-6 gap-y-3 lg:flex"
+          >
+            {items.map((item) => (
+              <NavbarLink
+                key={item.href}
+                href={item.href}
+                label={item.label}
+                isActive={item.href === currentHref}
+              />
+            ))}
+          </nav>
 
           <button
             type="button"
@@ -108,20 +130,6 @@ export function Navbar({
             <HamburgerIcon open={mobileOpen} />
           </button>
         </div>
-
-        <nav
-          aria-label="Primary"
-          className="mt-6 hidden flex-wrap items-center gap-x-6 gap-y-3 lg:flex lg:justify-end"
-        >
-          {items.map((item) => (
-            <NavbarLink
-              key={item.href}
-              href={item.href}
-              label={item.label}
-              isActive={item.href === currentHref}
-            />
-          ))}
-        </nav>
 
         <nav
           aria-label="Primary mobile"
