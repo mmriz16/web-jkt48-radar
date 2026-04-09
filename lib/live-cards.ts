@@ -11,9 +11,11 @@ type MemberProfile = {
 };
 
 type LiveSourceRecord = {
+  member_name?: string;
   room_url_key?: string;
   main_name?: string;
   image?: string;
+  viewer_count?: number;
   view_num?: number;
   started_at?: number;
   is_live?: boolean;
@@ -38,7 +40,7 @@ export type LiveCardsFeed = {
 };
 
 const LIVE_API_URL =
-  "https://api.termicons.com/jkt48/live?fields=room_url_key|main_name|image|view_num|started_at|is_live|live_url";
+  "https://api.termicons.com/jkt48/live?fields=platform|room_url_key|member_name|main_name|image|viewer_count|view_num|started_at|is_live|live_slug|live_url";
 const MEMBERS_API_URL =
   "https://api.termicons.com/jkt48/members?fields=name|nickname|photo|slug|team";
 
@@ -80,6 +82,20 @@ function asNumber(value: unknown): number | undefined {
   if (typeof value === "string") {
     const parsed = Number(value);
     if (Number.isFinite(parsed)) return parsed;
+  }
+  return undefined;
+}
+
+function asBoolean(value: unknown): boolean | undefined {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") {
+    if (value === 1) return true;
+    if (value === 0) return false;
+  }
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "true" || normalized === "1") return true;
+    if (normalized === "false" || normalized === "0") return false;
   }
   return undefined;
 }
@@ -215,7 +231,11 @@ function parseMembersPayload(payload: unknown): MemberProfile[] {
   }
 
   const root = asRecord(payload);
-  const values = Array.isArray(root?.value) ? root.value : [];
+  const values = Array.isArray(root?.data)
+    ? root.data
+    : Array.isArray(root?.value)
+      ? root.value
+      : [];
 
   return values
     .map((item) => asRecord(item))
@@ -240,35 +260,39 @@ function parseLiveGroup(
     .filter((item): item is RawRecord => item !== null)
     .map((item) => {
       const liveItem: LiveSourceRecord = {
+        member_name: asString(item.member_name),
         room_url_key: asString(item.room_url_key),
         main_name: asString(item.main_name),
         image: asString(item.image),
+        viewer_count: asNumber(item.viewer_count),
         view_num: asNumber(item.view_num),
         started_at: asNumber(item.started_at),
-        is_live: item.is_live === true,
+        is_live: asBoolean(item.is_live),
         live_url: asString(item.live_url),
       };
 
-      const names = parseLiveNames(liveItem.main_name);
+      const names = parseLiveNames(liveItem.main_name ?? liveItem.member_name);
       const memberName =
+        liveItem.member_name ??
         names.memberName ??
         (platform === "showroom" ? "Showroom Live" : "IDN Live");
       const matchedMember = matchMemberProfile(members, memberName);
+      const isLiveNow = liveItem.is_live ?? true;
 
       return {
         platform,
         href: parseHref(platform, liveItem.room_url_key, liveItem.live_url),
         memberName,
         japaneseName: names.japaneseName,
-        title: parseFullName(liveItem.main_name, memberName),
+        title: parseFullName(liveItem.main_name ?? liveItem.member_name, memberName),
         imageSrc:
           buildMemberCutoutUrl(matchedMember?.photo) ??
           liveItem.image ??
           fallbackItems.find((item) => item.platform === platform)?.imageSrc,
-        isLive: liveItem.is_live ?? true,
+        isLive: isLiveNow,
         stats: [
-          formatViewerCount(liveItem.view_num),
-          liveItem.is_live ? "Live Now" : formatStartedAt(liveItem.started_at),
+          formatViewerCount(liveItem.viewer_count ?? liveItem.view_num),
+          isLiveNow ? "Live Now" : formatStartedAt(liveItem.started_at),
         ],
       } satisfies LiveCardItem;
     });
